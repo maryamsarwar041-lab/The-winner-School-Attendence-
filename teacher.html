@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Winner School | Teacher Login</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f2f5fa;font-family:Arial,sans-serif;color:#263445}
+header{background:#17365d;color:white;padding:24px 16px;text-align:center}header h2{margin:0;font-size:21px}header p{margin:8px 0 0;color:#dbe7f7}
+main{max-width:480px;margin:55px auto;padding:18px}.card{background:#fff;border-radius:16px;padding:26px;box-shadow:0 5px 22px #0001}
+h1{font-size:26px;margin:0 0 8px}p{color:#667487}label{display:block;margin:16px 0 7px;font-weight:600}
+input{width:100%;padding:14px;border:1px solid #ccd5e0;border-radius:9px;font-size:16px}
+button{margin-top:20px;width:100%;padding:14px;border:0;border-radius:9px;background:#1769aa;color:#fff;font-size:17px;font-weight:bold}
+#msg{margin-top:14px;white-space:pre-wrap}.small{text-align:center;font-size:13px;margin-top:18px}
+</style></head><body>
+<header><h2>THE WINNER SCHOOL (ISLAMIC CAMPUS)</h2><p>Teacher Attendance Portal</p></header>
+<main><div class="card"><h1>Teacher Login</h1><p>Enter your assigned school email and password.</p>
+<form id="loginForm"><label>Email</label><input id="email" type="email" autocomplete="username" required placeholder="Teacher email">
+<label>Password</label><input id="password" type="password" autocomplete="current-password" required placeholder="Password">
+<button id="loginBtn" type="submit">Login</button></form><div id="msg"></div>
+<div class="small">For login help, contact School Admin.</div></div></main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const firebaseConfig = {
+ apiKey:"AIzaSyBoeVKahBPXx-sPE57nH-ylkl5c1djSTmE",
+ authDomain:"the-winner-school-attendence.firebaseapp.com",
+ databaseURL:"https://the-winner-school-attendence-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"the-winner-school-attendence",
+ storageBucket:"the-winner-school-attendence.firebasestorage.app",
+ messagingSenderId:"255019225232",
+ appId:"1:255019225232:web:2c2cbeaaabffd7899c8815",
+ measurementId:"G-JBQ6F69KSK"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app);
+const form=document.getElementById('loginForm'),msg=document.getElementById('msg'),btn=document.getElementById('loginBtn');
+form.addEventListener('submit',async e=>{
+ e.preventDefault();btn.disabled=true;btn.textContent='Please wait…';msg.style.color='#667487';msg.textContent='Signing in…';
+ try{await signInWithEmailAndPassword(auth,document.getElementById('email').value.trim(),document.getElementById('password').value);
+ msg.style.color='#167447';msg.textContent='Login successful! Opening attendance dashboard…';
+ // Firebase session is saved; continue to the existing school dashboard.
+ setTimeout(()=>location.href='./',900);
+ }catch(err){msg.style.color='#b42318';msg.textContent='Login failed: '+(err.code==='auth/invalid-credential'?'Email or password is incorrect.':err.code||err.message);btn.disabled=false;btn.textContent='Login';}
+});
+</script></body></html>
