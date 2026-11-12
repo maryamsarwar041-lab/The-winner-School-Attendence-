@@ -6,91 +6,146 @@
 <title>The Winner School Attendance</title>
 <style>
 *{box-sizing:border-box}
-body{font-family:Arial;margin:0;background:#f3f6fb;color:#1f2937}
-header{background:#142f55;color:white;padding:20px}
-main{max-width:1100px;margin:20px auto;padding:12px}
-.card{background:white;padding:20px;border-radius:12px;margin:15px 0}
-button,input,select{padding:10px;border-radius:7px;border:1px solid #ccc;margin:5px}
-button{background:#1769aa;color:white;border:0}
-.green{background:#16834a}
+body{margin:0;background:#f3f6fb;color:#1f2937;font:15px Arial}
+header{background:#142f55;color:white;padding:18px 5%;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font-size:22px;margin:0}
+main{max-width:1200px;margin:22px auto;padding:0 14px}
+.card{background:white;border-radius:12px;padding:18px;margin:14px 0;box-shadow:0 3px 12px #0000000b}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+input,select,button{padding:10px;border:1px solid #ccd5df;border-radius:7px;font-size:14px}
+button{background:#1769aa;color:white;border:0;font-weight:bold;cursor:pointer;margin:2px}
+button.gray{background:#64748b}
+button.red{background:#c43b43}
+button.green{background:#15834a}
 .nav{display:flex;gap:8px;flex-wrap:wrap}
-.hidden{display:none!important}
-table{width:100%;border-collapse:collapse}
-td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+.nav button{background:#dce8f5;color:#163b63}
+.nav button.active{background:#1769aa;color:white}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.stat{background:#f4f8fc;padding:15px;border-radius:8px}
-.stat b{display:block;font-size:24px}
-body.teacher-mode th:nth-child(4),
-body.teacher-mode td:nth-child(4),
-body.teacher-mode th:nth-child(5),
-body.teacher-mode td:nth-child(5),
-body.teacher-mode .admin-wa{display:none!important}
-@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:#f4f8fc;padding:14px;border-radius:8px}
+.stat b{display:block;font-size:24px;margin-top:8px;color:#142f55}
+.tablewrap{overflow:auto}
+table{border-collapse:collapse;width:100%;margin-top:12px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid #e5eaf0}
+th{background:#f3f6fa}
+.muted{color:#64748b;font-size:13px;line-height:1.5}
+.hidden{display:none!important}
+.alert{padding:10px;background:#fff6dc;border-radius:8px;margin:10px 0}
+.login{max-width:420px;margin:10vh auto}
+@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}h1{font-size:18px}}
 </style>
 </head>
 <body>
 <header>
-<h2>THE WINNER SCHOOL (ISLAMIC CAMPUS)</h2>
-Attendance Management • Reports
-<div id="userLabel"></div>
+<div>
+<h1>THE WINNER SCHOOL (ISLAMIC CAMPUS)</h1>
+<div class="muted" style="color:#d8e6f5">Attendance Management • Parent WhatsApp • Reports</div>
+</div>
+<span id="userLabel"></span>
 </header>
 
 <main>
-<div id="login" class="card">
-<h2>Login</h2>
-<input id="username" type="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<button onclick="loginNow()">Login</button>
-<p id="loginErr"></p>
+<div id="login" class="card login">
+<h2>Staff Login</h2>
+<p class="muted">Firebase Email & Password Login</p>
+<div class="field"><label>Email</label><input id="username" type="email"></div>
+<div class="field"><label>Password</label><input id="password" type="password"></div>
+<p><button onclick="loginNow()">Login</button>
+<button class="gray" onclick="registerNow()">Create account</button></p>
+<div id="loginErr" style="color:#c43b43"></div>
+<p class="muted">Admin: maryamsarwar041@gmail.com</p>
 </div>
 
 <div id="app" class="hidden">
 <div class="nav">
-<button id="studentsNav" class="hidden" onclick="tab('students')">Students</button>
-<button id="settingsNav" class="hidden" onclick="tab('settings')">Settings</button>
-<button onclick="logout()">Logout</button>
+<button class="active" onclick="tab('dashboard',this)">Dashboard</button>
+<button onclick="tab('attendance',this)">Attendance</button>
+<button onclick="tab('students',this)">Students</button>
+<button onclick="tab('reports',this)">Reports</button>
+<button id="settingsTab" onclick="tab('settings',this)">Settings (Admin)</button>
+<button class="gray" onclick="logout()">Logout</button>
 </div>
 
-<section id="attendance" class="card">
-<h2>Daily Attendance</h2>
-<label>Date</label><input id="attDate" type="date">
-<label>Class</label><select id="attClass" onchange="renderAttendance()"></select>
+<section id="dashboard" class="card">
+<h2>Admin Dashboard</h2>
 <div class="stats">
+<div class="stat">Total Students<b id="dashStudents">0</b></div>
+<div class="stat">Present Today<b id="dashPresent">0</b></div>
+<div class="stat">Absent Today<b id="dashAbsent">0</b></div>
+<div class="stat">Leave Today<b id="dashLeave">0</b></div>
+</div>
+<p><button onclick="tab('attendance',navButtons[1])">Go to Attendance</button>
+<button onclick="tab('students',navButtons[2])">Student Register</button>
+<button onclick="tab('reports',navButtons[3])">Reports</button></p>
+</section>
+
+<section id="attendance" class="card hidden">
+<h2>Class-wise Daily Attendance</h2>
+<div class="grid">
+<div class="field"><label>Date</label><input id="attDate" type="date"></div>
+<div class="field"><label>Class</label><select id="attClass"></select></div>
+</div>
+<div class="stats" style="margin-top:14px">
 <div class="stat">Students<b id="cntAll">0</b></div>
 <div class="stat">Present<b id="cntP">0</b></div>
 <div class="stat">Absent<b id="cntA">0</b></div>
 <div class="stat">Leave<b id="cntL">0</b></div>
 </div>
-<table>
-<thead><tr><th>Student</th><th>Roll</th><th>Status</th><th>Parent WhatsApp</th><th>Alert</th></tr></thead>
+<div class="tablewrap"><table>
+<thead><tr><th>Student</th><th>Roll No.</th><th>Status</th><th>Parent WhatsApp</th><th>Alert</th></tr></thead>
 <tbody id="attRows"></tbody>
-</table>
-<button onclick="saveAttendance()">Save Attendance</button>
-<button class="admin-wa" onclick="absentMessages()">WhatsApp All Absentees</button>
+</table></div>
+<p><button class="green" onclick="saveAttendance()">Save Attendance</button>
+<button onclick="absentMessages()">WhatsApp all absentees</button></p>
+<p class="muted">WhatsApp opens prefilled messages. Staff must press Send.</p>
+</section>
+
+<section id="students" class="card hidden">
+<h2>Student Register</h2>
+<div id="studentAdminTools">
+<input id="editId" type="hidden">
+<div class="grid">
+<div class="field"><label>Student name</label><input id="sName"></div>
+<div class="field"><label>Roll No.</label><input id="sRoll"></div>
+<div class="field"><label>Class/Section</label><input id="sClass" placeholder="Class 5-A"></div>
+<div class="field"><label>Parent name</label><input id="pName"></div>
+<div class="field"><label>Parent WhatsApp (92...)</label><input id="pPhone"></div>
+</div>
+<p><button onclick="addStudent()" id="saveStudentBtn">Add Student</button>
+<button class="gray" onclick="cancelEdit()">Cancel Edit</button>
+<button class="gray" onclick="exportStudents()">Export Students CSV</button>
+<button class="green" onclick="document.getElementById('importStudentsFile').click()">Import CSV</button>
+<input id="importStudentsFile" type="file" accept=".csv,text/csv" class="hidden" onchange="importStudents(event)">
+</p>
+<div class="alert"><b>Bulk Import:</b> Excel file ko CSV format mein save karein. Columns: Name, Roll, Class, Parent, WhatsApp.
+<button class="gray" onclick="downloadTemplate()">Download Template</button></div>
+</div>
+<div class="tablewrap"><table>
+<thead><tr><th>Name</th><th>Roll</th><th>Class</th><th>Parent</th><th>WhatsApp</th><th>Actions</th></tr></thead>
+<tbody id="studentRows"></tbody>
+</table></div>
 </section>
 
 <section id="reports" class="card hidden">
 <h2>Attendance Reports</h2>
-<input id="reportDate" type="date">
-<input id="reportClass" placeholder="Class">
-<button onclick="renderReport()">Generate</button>
+<div class="grid">
+<div class="field"><label>Report date</label><input id="reportDate" type="date"></div>
+<div class="field"><label>Class (blank = all)</label><input id="reportClass" placeholder="Class 5-A"></div>
+</div>
+<p><button onclick="renderReport()">Generate Report</button>
+<button class="gray" onclick="exportAttendance()">Export Attendance CSV</button></p>
 <div id="reportOutput"></div>
 </section>
 
-<section id="students" class="card hidden">
-<h2>Student Register (Admin)</h2>
-<input id="sName" placeholder="Student Name">
-<input id="sRoll" placeholder="Roll No">
-<input id="sClass" placeholder="Class">
-<input id="pName" placeholder="Parent Name">
-<input id="pPhone" placeholder="Parent WhatsApp">
-<button onclick="addStudent()">Add Student</button>
-<table><tbody id="studentRows"></tbody></table>
-</section>
-
 <section id="settings" class="card hidden">
-<h2>Settings (Admin)</h2>
-<button onclick="backup()">Download Backup</button>
+<h2>Settings & Backup</h2>
+<p><b>Admin-only area.</b></p>
+<p><button class="green" onclick="backup()">Download Backup JSON</button>
+<button class="gray" onclick="document.getElementById('restoreFile').click()">Restore JSON</button>
+<input id="restoreFile" type="file" accept=".json" class="hidden" onchange="restore(event)">
+</p>
+<div class="alert">Firebase online sync enabled. WhatsApp messages require Send button.</div>
+<button class="red" onclick="resetAll()">Reset all data</button>
 </section>
 </div>
 </main>
@@ -98,7 +153,6 @@ Attendance Management • Reports
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
-
 <script>
 const firebaseConfig={
 apiKey:"AIzaSyBoeVKahBPXx-sPE57nH-ylkl5c1djSTmE",
@@ -107,176 +161,212 @@ databaseURL:"https://the-winner-school-attendence-default-rtdb.asia-southeast1.f
 projectId:"the-winner-school-attendence",
 storageBucket:"the-winner-school-attendence.firebasestorage.app",
 messagingSenderId:"255019225232",
-appId:"1:255019225232:web:2c2cbeaaabffd7899c8815"
+appId:"1:255019225232:web:2c2cbeaaabffd7899c8815",
+measurementId:"G-JBQ6F69KSK"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(),db=firebase.database();
 const ADMIN_EMAIL="maryamsarwar041@gmail.com";
 let students=[],records={},current=null,syncing=false;
 const today=new Date().toISOString().slice(0,10);
-attDate.value=today;
-reportDate.value=today;
+attDate.value=today;reportDate.value=today;
+const navButtons=[...document.querySelectorAll(".nav button")];
 
 function persist(){
-if(auth.currentUser&&!syncing)
-db.ref("schoolAttendance").set({students,records});
+if(!auth.currentUser||syncing)return;
+db.ref("schoolAttendance/students").set(students)
+.catch(e=>alert("Student save error: "+e.message));
+db.ref("schoolAttendance/records").set(records)
+.catch(e=>alert("Attendance save error: "+e.message));
 }
-
-function loginNow(){
-loginErr.textContent="";
-auth.signInWithEmailAndPassword(username.value.trim(),password.value)
-.catch(e=>loginErr.textContent=e.message);
-}
-
-auth.onAuthStateChanged(user=>{
-if(user){
-current={role:user.email.toLowerCase()===ADMIN_EMAIL?"admin":"teacher"};
-document.body.classList.toggle("teacher-mode",current.role!=="admin");
-login.classList.add("hidden");
-app.classList.remove("hidden");
-userLabel.textContent=user.email+" • "+current.role;
-studentsNav.classList.toggle("hidden",current.role!=="admin");
-settingsNav.classList.toggle("hidden",current.role!=="admin");
-startCloud();
-}else{
-current=null;
-document.body.classList.remove("teacher-mode");
-app.classList.add("hidden");
-login.classList.remove("hidden");
-userLabel.textContent="";
-}
-});
-
-function logout(){
-auth.signOut();
-db.ref("schoolAttendance").off();
-}
-
 function startCloud(){
 db.ref("schoolAttendance").on("value",snap=>{
 syncing=true;
 let x=snap.val()||{};
-students=x.students||[];
+students=Array.isArray(x.students)?x.students:[];
 records=x.records||{};
 syncing=false;
-populateClasses();
-renderAttendance();
-renderStudents();
+populateClasses();renderAttendance();renderStudents();renderReport();updateDashboard();
 });
 }
-
-function tab(id){
-if((id==="students"||id==="settings")&&current.role!=="admin")return;
+function registerNow(){
+auth.createUserWithEmailAndPassword(username.value.trim(),password.value)
+.catch(e=>loginErr.textContent=e.message);
+}
+function loginNow(){
+auth.signInWithEmailAndPassword(username.value.trim(),password.value)
+.catch(e=>loginErr.textContent=e.message);
+}
+auth.onAuthStateChanged(user=>{
+if(user){
+let isAdmin=(user.email||"").toLowerCase()===ADMIN_EMAIL.toLowerCase();
+current={name:user.email,role:isAdmin?"admin":"staff"};
+login.classList.add("hidden");app.classList.remove("hidden");
+userLabel.textContent=user.email+" • "+(isAdmin?"ADMIN":"STAFF");
+studentAdminTools.classList.toggle("hidden",!isAdmin);
+settingsTab.classList.toggle("hidden",!isAdmin);
+startCloud();
+}else{
+current=null;app.classList.add("hidden");login.classList.remove("hidden");userLabel.textContent="";
+}
+});
+function logout(){auth.signOut();db.ref("schoolAttendance").off();}
+function tab(id,b){
+if(id==="settings"&&current.role!=="admin"){alert("Settings are Admin only");return;}
 document.querySelectorAll("#app section").forEach(x=>x.classList.add("hidden"));
 document.getElementById(id).classList.remove("hidden");
+navButtons.forEach(x=>x.classList.remove("active"));
+if(b)b.classList.add("active");
 if(id==="students")renderStudents();
+if(id==="reports")renderReport();
+if(id==="dashboard")updateDashboard();
 }
-
-function populateClasses(){
-let cs=[...new Set(students.map(s=>s.cls))].sort();
-attClass.innerHTML='<option value="">All classes</option>'+
-cs.map(c=>`<option>${esc(c)}</option>`).join("");
-}
-
-function key(d,id){return d+"_"+id}
-
-function renderAttendance(){
-let cl=attClass.value,d=attDate.value;
-let list=students.filter(s=>!cl||s.cls===cl);
-let c={Present:0,Absent:0,Leave:0};
-
-list.forEach(s=>{
-let st=records[key(d,s.id)]||"";
-if(c[st]!=null)c[st]++;
-});
-
-cntAll.textContent=list.length;
-cntP.textContent=c.Present;
-cntA.textContent=c.Absent;
-cntL.textContent=c.Leave;
-
-attRows.innerHTML=list.map(s=>{
-let st=records[key(d,s.id)]||"";
-return `<tr>
-<td>${esc(s.name)}</td>
-<td>${esc(s.roll||"-")}</td>
-<td><select onchange="records[key(attDate.value,'${s.id}')]=this.value;persist();renderAttendance()">
-<option value="">Unmarked</option>
-${["Present","Absent","Leave"].map(v=>`<option ${st===v?"selected":""}>${v}</option>`).join("")}
-</select></td>
-<td>${esc(s.phone||"—")}</td>
-<td>${st==="Absent"?`<button class="green admin-wa" onclick="sendWA('${s.id}')">WhatsApp</button>`:"—"}</td>
-</tr>`;
-}).join("");
-}
-
-function sendWA(id){
-let s=students.find(x=>x.id===id);
-if(!s||!s.phone)return alert("Parent WhatsApp number not added");
-let p=String(s.phone).replace(/\D/g,"");
-if(p.startsWith("0"))p="92"+p.slice(1);
-if(!p.startsWith("92"))p="92"+p;
-let m=`Assalam-o-Alaikum. ${s.name} (${s.cls}) is marked absent today. Regards, The Winner School (Islamic Campus).`;
-window.open("https://wa.me/"+p+"?text="+encodeURIComponent(m),"_blank");
-}
-
-function absentMessages(){
-let a=students.filter(s=>records[key(attDate.value,s.id)]==="Absent"&&s.phone);
-if(!a.length)return alert("No absent students with parent WhatsApp numbers");
-a.forEach((s,i)=>setTimeout(()=>sendWA(s.id),i*700));
-}
-
-function saveAttendance(){
-persist();
-alert("Attendance saved");
-}
-
 function addStudent(){
 if(current.role!=="admin")return alert("Admin only");
-if(!sName.value||!sClass.value)return alert("Name and class required");
-students.push({
-id:Date.now().toString(),
-name:sName.value,
-roll:sRoll.value,
-cls:sClass.value,
-parent:pName.value,
-phone:pPhone.value
-});
-persist();
-populateClasses();
-renderStudents();
+let n=sName.value.trim(),cl=sClass.value.trim(),id=editId.value;
+if(!n||!cl)return alert("Student name and class required");
+let obj={id:id||Date.now().toString(),name:n,roll:sRoll.value.trim(),cls:cl,parent:pName.value.trim(),phone:pPhone.value.replace(/\D/g,"")};
+if(id){let i=students.findIndex(s=>s.id===id);if(i>=0)students[i]=obj;}
+else students.push(obj);
+persist();cancelEdit();populateClasses();renderStudents();renderAttendance();updateDashboard();
 }
-
+function editStudent(id){
+if(current.role!=="admin")return alert("Admin only");
+let s=students.find(x=>x.id===id);if(!s)return;
+editId.value=s.id;sName.value=s.name;sRoll.value=s.roll||"";
+sClass.value=s.cls;pName.value=s.parent||"";pPhone.value=s.phone||"";
+saveStudentBtn.textContent="Update Student";
+window.scrollTo({top:document.getElementById("students").offsetTop,behavior:"smooth"});
+}
+function cancelEdit(){
+editId.value="";sName.value="";sRoll.value="";sClass.value="";pName.value="";pPhone.value="";
+saveStudentBtn.textContent="Add Student";
+}
+function del(id){
+if(current.role!=="admin")return alert("Admin only");
+if(!confirm("Delete student? Attendance history will remain saved."))return;
+students=students.filter(s=>s.id!==id);
+persist();populateClasses();renderStudents();renderAttendance();updateDashboard();
+}
+function populateClasses(){
+let cs=[...new Set(students.map(s=>s.cls))].sort();
+let old=attClass.value;
+attClass.innerHTML='<option value="">All Classes</option>'+cs.map(c=>`<option>${esc(c)}</option>`).join("");
+if(cs.includes(old))attClass.value=old;
+}
+function k(d,id){return d+"_"+id}
+function renderAttendance(){
+let cl=attClass.value,d=attDate.value,list=students.filter(s=>!cl||s.cls===cl);
+let c={Present:0,Absent:0,Leave:0};
+list.forEach(s=>{let st=records[k(d,s.id)]||"";if(c[st]!=null)c[st]++});
+cntAll.textContent=list.length;cntP.textContent=c.Present;cntA.textContent=c.Absent;cntL.textContent=c.Leave;
+attRows.innerHTML=list.map(s=>{
+let st=records[k(d,s.id)]||"";
+return `<tr><td>${esc(s.name)}</td><td>${esc(s.roll||"-")}</td>
+<td><select data-id="${s.id}" onchange="setStatus(this.dataset.id,this.value)">
+<option value="">Unmarked</option>${["Present","Absent","Leave"].map(v=>`<option ${st===v?"selected":""}>${v}</option>`).join("")}</select></td>
+<td>${esc(s.phone||"—")}</td><td>${st==="Absent"?`<button class="green" onclick="sendWA('${s.id}')">WhatsApp</button>`:"—"}</td></tr>`;
+}).join("");
+updateDashboard();
+}
+function setStatus(id,status){
+records[k(attDate.value,id)]=status;persist();renderAttendance();
+}
+function saveAttendance(){persist();alert("Attendance saved.");renderAttendance();}
+function message(s){
+return `Assalam-o-Alaikum Dear Parent, your child ${s.name} (${s.cls}) is marked ABSENT today (${attDate.value}). Kindly ensure regular attendance. Regards, The Winner School (Islamic Campus).`;
+}
+function sendWA(id){
+let s=students.find(x=>x.id===id);if(!s.phone)return alert("Parent WhatsApp number missing");
+window.open("https://wa.me/"+s.phone+"?text="+encodeURIComponent(message(s)),"_blank");
+}
+function absentMessages(){
+let xs=students.filter(s=>records[k(attDate.value,s.id)]==="Absent"&&s.phone);
+if(!xs.length)return alert("No absent students with phone numbers");
+xs.forEach((s,i)=>setTimeout(()=>window.open("https://wa.me/"+s.phone+"?text="+encodeURIComponent(message(s)),"_blank"),i*700));
+}
 function renderStudents(){
-studentRows.innerHTML=students.map(s=>
-`<tr><td>${esc(s.name)}</td><td>${esc(s.roll)}</td><td>${esc(s.cls)}</td><td>${esc(s.parent)}</td><td>${esc(s.phone)}</td></tr>`
-).join("");
+studentRows.innerHTML=students.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.roll||"")}</td><td>${esc(s.cls)}</td><td>${esc(s.parent||"")}</td><td>${esc(s.phone||"")}</td><td>${current.role==="admin"?`<button onclick="editStudent('${s.id}')">Edit</button><button class="red" onclick="del('${s.id}')">Delete</button>`:"—"}</td></tr>`).join("");
 }
-
+function updateDashboard(){
+let d=today,c={Present:0,Absent:0,Leave:0};
+students.forEach(s=>{let st=records[k(d,s.id)]||"";if(c[st]!=null)c[st]++});
+dashStudents.textContent=students.length;dashPresent.textContent=c.Present;dashAbsent.textContent=c.Absent;dashLeave.textContent=c.Leave;
+}
 function renderReport(){
 let d=reportDate.value,cl=reportClass.value.trim().toLowerCase();
 let list=students.filter(s=>!cl||s.cls.toLowerCase().includes(cl));
 let c={Present:0,Absent:0,Leave:0,Unmarked:0};
-list.forEach(s=>{
-let st=records[key(d,s.id)]||"Unmarked";
-c[st]++;
-});
-reportOutput.innerHTML=`Total: ${list.length} | Present: ${c.Present} | Absent: ${c.Absent} | Leave: ${c.Leave} | Unmarked: ${c.Unmarked}`;
+list.forEach(s=>{let st=records[k(d,s.id)]||"Unmarked";c[st]=(c[st]||0)+1});
+reportOutput.innerHTML=`<div class="stats">
+<div class="stat">Total<b>${list.length}</b></div>
+<div class="stat">Present<b>${c.Present}</b></div>
+<div class="stat">Absent<b>${c.Absent}</b></div>
+<div class="stat">Leave / Unmarked<b>${c.Leave} / ${c.Unmarked}</b></div></div>
+<p>Attendance date: ${d}</p>`;
 }
-
-function backup(){
+function exportAttendance(){
+let rows=[["Date","Student","Roll","Class","Parent WhatsApp","Status"],
+...students.map(s=>[reportDate.value,s.name,s.roll,s.cls,s.phone,records[k(reportDate.value,s.id)]||"Unmarked"])];
+csvDownload(rows,"attendance-"+reportDate.value+".csv");
+}
+function exportStudents(){
+csvDownload([["Name","Roll","Class","Parent","WhatsApp"],...students.map(s=>[s.name,s.roll,s.cls,s.parent,s.phone])],"students.csv");
+}
+function downloadTemplate(){
+csvDownload([["Name","Roll","Class","Parent","WhatsApp"],["Ali Ahmed","1","Class 1","Ahmed Ali","923001234567"]],"students-import-template.csv");
+}
+function importStudents(e){
 if(current.role!=="admin")return alert("Admin only");
-let a=document.createElement("a");
-a.href=URL.createObjectURL(new Blob([JSON.stringify({students,records})]));
-a.download="winner-backup.json";
-a.click();
+const f=e.target.files[0];if(!f)return;
+const reader=new FileReader();
+reader.onload=()=>{
+try{
+const lines=String(reader.result).replace(/^\uFEFF/,"").split(/\r?\n/).filter(x=>x.trim());
+const parseLine=line=>{let a=[],v="",q=false;for(let i=0;i<line.length;i++){let c=line[i];if(c==='"'&&line[i+1]==='"'&&q){v+='"';i++}else if(c==='"')q=!q;else if(c===","&&!q){a.push(v.trim());v=""}else v+=c}a.push(v.trim());return a};
+const head=parseLine(lines.shift()).map(x=>x.toLowerCase().replace(/[^a-z]/g,""));
+const idx=(...names)=>head.findIndex(h=>names.includes(h));
+const ni=idx("name","studentname"),ri=idx("roll","rollno","rollnumber"),ci=idx("class","section","classsection"),pi=idx("parent","parentname","fathername"),wi=idx("whatsapp","phone","parentwhatsapp","contact");
+if(ni<0||ci<0)throw new Error("Name aur Class columns zaroori hain");
+let added=0;
+lines.forEach(line=>{
+let a=parseLine(line),name=a[ni]||"",cls=a[ci]||"";
+if(!name||!cls)return;
+students.push({id:Date.now().toString()+Math.random().toString(36).slice(2),name,roll:ri>=0?a[ri]||"":"",cls,parent:pi>=0?a[pi]||"":"",phone:wi>=0?(a[wi]||"").replace(/\D/g,""):""});
+added++;
+});
+persist();populateClasses();renderStudents();renderAttendance();alert(added+" students imported");
+}catch(err){alert("Import error: "+err.message)}
+e.target.value="";
+};
+reader.readAsText(f);
 }
-
-function esc(x){
-return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function csvDownload(rows,name){
+let csv=rows.map(r=>r.map(x=>'"'+String(x??"").replace(/"/g,'""')+'"').join(",")).join("\n");
+let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=name;a.click();
 }
+function backup(){
+let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({students,records},null,2)],{type:"application/json"}));a.download="winner-attendance-backup.json";a.click();
+}
+function restore(e){
+if(current.role!=="admin")return alert("Admin only");
+let f=e.target.files[0];if(!f)return;
+let r=new FileReader();r.onload=()=>{
+try{let x=JSON.parse(r.result);if(!confirm("Current data replace ho jayega. Continue?"))return;
+students=x.students||[];records=x.records||{};persist();populateClasses();renderStudents();renderAttendance();updateDashboard();alert("Backup restored");
+}catch{alert("Invalid backup file")}
+};r.readAsText(f);
+}
+function resetAll(){
+if(current.role!=="admin")return alert("Admin only");
+if(confirm("Erase all student and attendance data?")){
+students=[];records={};persist();populateClasses();renderStudents();renderAttendance();updateDashboard();
+}
+}
+function esc(x){return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 attDate.addEventListener("change",renderAttendance);
+attClass.addEventListener("change",renderAttendance);
+reportDate.addEventListener("change",renderReport);
 </script>
 </body>
-</html>
+  </html>
