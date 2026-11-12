@@ -184,7 +184,9 @@ return `<tr><td>${esc(s.name)}</td><td>${esc(s.roll||"-")}</td>
 <td><select onchange="records[key(attDate.value,'${s.id}')]=this.value;persist();renderAttendance()">
 <option value="">Unmarked</option>
 ${["Present","Absent","Leave"].map(v=>`<option ${st===v?"selected":""}>${v}</option>`).join("")}
-</select></td></tr>`;
+</select></td>
+<td>${s.phone||'—'}</td>
+<td>${st==='Absent'?`<button class="green admin-wa" onclick="sendWA('${s.id}')">WhatsApp</button>`:'—'}</td></tr>;
 }).join("");
 }
 
