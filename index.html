@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>The Winner School Attendance</title>
+<title>THE WINNER SCHOOL (ISLAMIC CAMPUS)</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f3f6fb;color:#1f2937;font:15px Arial}
-header{background:#142f55;color:white;padding:18px 5%;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+header{background:#142f55;color:white;padding:18px 5%}
 h1{font-size:22px;margin:0}
-main{max-width:1200px;margin:22px auto;padding:0 14px}
-.card{background:white;border-radius:12px;padding:18px;margin:14px 0;box-shadow:0 3px 12px #0000000b}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+main{max-width:1200px;margin:20px auto;padding:0 12px}
+.card{background:white;padding:18px;border-radius:12px;margin:14px 0;box-shadow:0 3px 12px #0001}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .field{display:flex;flex-direction:column;gap:6px}
 input,select,button{padding:10px;border:1px solid #ccd5df;border-radius:7px;font-size:14px}
-button{background:#1769aa;color:white;border:0;font-weight:bold;cursor:pointer}
+button{background:#1769aa;color:white;border:0;cursor:pointer;font-weight:bold}
 button.gray{background:#64748b}
 button.red{background:#c43b43}
 button.green{background:#15834a}
@@ -28,237 +29,366 @@ button.green{background:#15834a}
 table{border-collapse:collapse;width:100%;margin-top:12px}
 th,td{text-align:left;padding:10px;border-bottom:1px solid #e5eaf0}
 th{background:#f3f6fa}
-.muted{color:#64748b;font-size:13px;line-height:1.5}
+.muted{color:#64748b;font-size:13px}
 .hidden{display:none!important}
-.alert{padding:10px;background:#fff6dc;border-radius:8px;margin:10px 0}
 .login{max-width:420px;margin:10vh auto}
-@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}h1{font-size:18px}}
+.staffMode #studentsNav,
+.staffMode #holidaysNav,
+.staffMode #settingsNav{display:none!important}
+.staffMode .contactCol,
+.staffMode .waCol{display:none!important}
+@media(max-width:650px){
+.stats{grid-template-columns:repeat(2,1fr)}
+h1{font-size:18px}
+}
 </style>
 </head>
+
 <body>
 <header>
-<div>
 <h1>THE WINNER SCHOOL (ISLAMIC CAMPUS)</h1>
-<div class="muted" style="color:#d8e6f5">Attendance Management • Parent WhatsApp • Reports</div>
-</div>
-<span id="userLabel"></span>
+<p>Attendance Management • Reports</p>
 </header>
+
 <main>
 <div id="login" class="card login">
-<h2>Admin / Staff Login</h2>
-<p class="muted">Admin aur tamam staff same login use karenge.</p>
-<div class="field"><label>School Login Email</label><input id="username" type="email" placeholder="Firebase account email"></div>
-<div class="field"><label>Shared Password</label><input id="password" type="password" placeholder="School shared password"></div>
+<h2>Staff / Admin Login</h2>
+<div class="field">
+<label>Email</label>
+<input id="username" type="email">
+</div>
+<div class="field">
+<label>Password</label>
+<input id="password" type="password">
+</div>
 <p><button onclick="loginNow()">Login</button></p>
-<div id="loginErr" style="color:#c43b43"></div>
-<p class="muted">Firebase mein aik account banayein; usi email aur password se tamam staff login kar sakte hain.</p>
+<div id="loginErr"></div>
 </div>
 
 <div id="app" class="hidden">
 <div class="nav">
 <button class="active" onclick="tab('attendance',this)">Attendance</button>
-<button onclick="tab('students',this)">Students</button>
-<button onclick="tab('reports',this)">Daily Reports</button>
-<button onclick="tab('monthly',this)">Monthly Reports</button>
-<button onclick="tab('holidays',this)">Holidays</button>
-<button onclick="tab('settings',this)">Settings</button>
+<button onclick="tab('reports',this)">Daily Report</button>
+<button id="monthlyNav" onclick="tab('monthly',this)">Monthly Report</button>
+<button id="studentsNav" onclick="tab('students',this)">Students</button>
+<button id="holidaysNav" onclick="tab('holidays',this)">Holidays</button>
+<button id="settingsNav" onclick="tab('settings',this)">Settings</button>
 <button class="gray" onclick="logout()">Logout</button>
 </div>
-
 <section id="attendance" class="card">
-<h2>Class-wise Daily Attendance</h2>
+<h2>Daily Attendance</h2>
 <div class="grid">
 <div class="field"><label>Date</label><input id="attDate" type="date"></div>
-<div class="field"><label>Class</label><select id="attClass" onchange="renderAttendance()"></select></div>
+<div class="field"><label>Class</label><select id="attClass"></select></div>
 </div>
-<div class="stats" style="margin-top:14px">
+<div class="stats">
 <div class="stat">Students<b id="cntAll">0</b></div>
 <div class="stat">Present<b id="cntP">0</b></div>
 <div class="stat">Absent<b id="cntA">0</b></div>
 <div class="stat">Leave<b id="cntL">0</b></div>
 </div>
 <div class="tablewrap">
-<table><thead><tr><th>Student</th><th>Roll No.</th><th>Status</th><th>Parent WhatsApp</th><th>Alert</th></tr></thead><tbody id="attRows"></tbody></table>
+<table><thead><tr><th>Student</th><th>Roll</th><th>Status</th><th class="contactCol">Contact</th><th class="waCol">WhatsApp</th></tr></thead>
+<tbody id="attRows"></tbody></table>
 </div>
-<p><button class="green" onclick="saveAttendance()">Save Attendance</button> <button onclick="absentMessages()">Open WhatsApp for all absentees</button></p>
-<p class="muted">WhatsApp links open prefilled messages; staff must press Send.</p>
-</section>
-
-<section id="students" class="card hidden">
-<h2>Student Register</h2>
-<div class="grid">
-<div class="field"><label>Student name</label><input id="sName"></div>
-<div class="field"><label>Roll No.</label><input id="sRoll"></div>
-<div class="field"><label>Class/Section</label><input id="sClass" placeholder="Class 5-A"></div>
-<div class="field"><label>Parent name</label><input id="pName"></div>
-<div class="field"><label>Parent WhatsApp (92...)</label><input id="pPhone"></div>
-</div>
-<p><button onclick="addStudent()">Add Student</button> <button class="gray" onclick="exportStudents()">Export Students CSV</button></p>
-<div class="tablewrap"><table><thead><tr><th>Name</th><th>Roll</th><th>Class</th><th>Parent</th><th>WhatsApp</th><th></th></tr></thead><tbody id="studentRows"></tbody></table></div>
+<p><button onclick="saveAttendance()">Save Attendance</button></p>
 </section>
 
 <section id="reports" class="card hidden">
-<h2>Attendance Reports</h2>
+<h2>Daily Report</h2>
 <div class="grid">
-<div class="field"><label>Report date</label><input id="reportDate" type="date"></div>
-<div class="field"><label>Class (blank = all)</label><input id="reportClass" placeholder="Class 5-A"></div>
+<div class="field"><label>Date</label><input id="reportDate" type="date"></div>
+<div class="field"><label>Class (blank = all)</label><input id="reportClass"></div>
 </div>
-<p><button onclick="renderReport()">Generate Report</button> <button class="gray" onclick="exportAttendance()">Export Attendance CSV</button></p>
+<p><button onclick="renderReport()">Generate Report</button></p>
 <div id="reportOutput"></div>
 </section>
 
 <section id="monthly" class="card hidden">
-<h2>Monthly Attendance Reports</h2>
+<h2>Monthly Report</h2>
 <div class="grid">
 <div class="field"><label>Month</label><input id="monthPick" type="month"></div>
-<div class="field"><label>Class (blank = all)</label><input id="monthClass" placeholder="Class 5-A"></div>
-<div class="field"><label>Student (optional)</label><select id="monthStudent"><option value="">All students</option></select></div>
+<div class="field"><label>Class</label><input id="monthClass"></div>
+<div class="field"><label>Student</label><select id="monthStudent"><option value="">All Students</option></select></div>
 </div>
-<p><button onclick="monthlyReport()">Generate Monthly Report</button> <button class="gray" onclick="printMonthly()">Print / Save PDF</button> <button class="gray" onclick="exportMonthly()">Export CSV</button></p>
+<p><button onclick="monthlyReport()">View Monthly Report</button>
+<button class="gray" onclick="printMonthly()">Print / PDF</button></p>
 <div id="monthOutput"></div>
 </section>
 
-<section id="holidays" class="card hidden">
-<h2>Holiday / Vacation Manager (Admin)</h2>
+<section id="students" class="card hidden">
+<h2>Student Register (Admin)</h2>
 <div class="grid">
-<div class="field"><label>Holiday name</label><input id="holidayName" placeholder="Winter Vacation"></div>
-<div class="field"><label>From</label><input id="holidayFrom" type="date"></div>
-<div class="field"><label>To</label><input id="holidayTo" type="date"></div>
+<input id="sName" placeholder="Student Name">
+<input id="sRoll" placeholder="Roll No">
+<input id="sClass" placeholder="Class">
+<input id="pName" placeholder="Parent Name">
+<input id="pPhone" placeholder="Parent WhatsApp">
 </div>
-<p><button onclick="addHoliday()">Add Holiday</button></p>
+<p><button onclick="addStudent()">Add Student</button></p>
+<div id="studentRows"></div>
+</section>
+
+<section id="holidays" class="card hidden">
+<h2>Holiday Manager (Admin)</h2>
+<input id="holidayName" placeholder="Holiday Name">
+<input id="holidayFrom" type="date">
+<input id="holidayTo" type="date">
+<button onclick="addHoliday()">Add Holiday</button>
 <div id="holidayList"></div>
 </section>
 
 <section id="settings" class="card hidden">
-<h2>Settings & Backup</h2>
-<p>Admin aur Staff same Firebase login use karte hain.</p>
-<p><button class="green" onclick="backup()">Download full backup JSON</button> <button class="gray" onclick="document.getElementById('restoreFile').click()">Restore JSON backup</button> <input id="restoreFile" type="file" accept=".json" class="hidden" onchange="restore(event)"></p>
-<div class="alert">Data Firebase Realtime Database mein synchronized hai.</div>
-<button class="red" onclick="resetAll()">Reset all demo data</button>
+<h2>Admin Settings</h2>
+<button onclick="backup()">Download Backup</button>
+<button onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
+<input id="restoreFile" type="file" class="hidden" onchange="restore(event)">
+<button class="red" onclick="resetAll()">Reset Data</button>
 </section>
 </div>
 </main>
-
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
 <script>
-const firebaseConfig = {
+const firebaseConfig={
 apiKey:"AIzaSyBoeVKahBPXx-sPE57nH-ylkl5c1djSTmE",
 authDomain:"the-winner-school-attendence.firebaseapp.com",
 databaseURL:"https://the-winner-school-attendence-default-rtdb.asia-southeast1.firebasedatabase.app",
 projectId:"the-winner-school-attendence",
 storageBucket:"the-winner-school-attendence.firebasestorage.app",
 messagingSenderId:"255019225232",
-appId:"1:255019225232:web:2c2cbeaaabffd7899c8815",
-measurementId:"G-JBQ6F69KSK"
+appId:"1:255019225232:web:2c2cbeaaabffd7899c8815"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(),db=firebase.database();
-let syncing=false,students=[],records={},current=null,holidays=[];
+let students=[],records={},holidays=[],current=null,syncing=false;
+
+const ADMIN_EMAIL="maryamsarwar@gmail.com";
 const today=new Date().toISOString().slice(0,10);
-attDate.value=today;reportDate.value=today;monthPick.value=today.slice(0,7);
+attDate.value=today;
+reportDate.value=today;
+monthPick.value=today.slice(0,7);
 
 function persist(){
 if(!auth.currentUser||syncing)return;
-db.ref('schoolAttendance').set({students,records,holidays}).catch(e=>alert('Cloud save error: '+e.message));
+db.ref("schoolAttendance").set({students,records,holidays});
 }
+
 function startCloud(){
-db.ref('schoolAttendance').on('value',snap=>{
-syncing=true;let x=snap.val()||{};
+db.ref("schoolAttendance").on("value",snap=>{
+syncing=true;
+let x=snap.val()||{};
 students=Array.isArray(x.students)?x.students:[];
-records=x.records||{};holidays=x.holidays||{};
-syncing=false;populateClasses();renderAttendance();renderStudents();renderReport();
+records=x.records||{};
+holidays=x.holidays||[];
+syncing=false;
+populateClasses();
+renderAttendance();
+renderStudents();
+renderReport();
 });
 }
-function loginNow(){auth.signInWithEmailAndPassword(username.value.trim(),password.value).catch(e=>loginErr.textContent=e.message)}
+
+function loginNow(){
+auth.signInWithEmailAndPassword(username.value.trim(),password.value)
+.catch(e=>loginErr.textContent=e.message);
+}
+
 auth.onAuthStateChanged(user=>{
-if(user){current={name:user.email,role:'admin'};login.classList.add('hidden');app.classList.remove('hidden');userLabel.textContent=user.email+' • signed in';startCloud()}
-else{current=null;app.classList.add('hidden');login.classList.remove('hidden');userLabel.textContent=''}
+if(user){
+current={email:user.email,role:user.email.toLowerCase()===ADMIN_EMAIL?"admin":"staff"};
+login.classList.add("hidden");
+app.classList.remove("hidden");
+applyRole();
+startCloud();
+}else{
+current=null;
+app.classList.add("hidden");
+login.classList.remove("hidden");
+}
 });
-function logout(){auth.signOut();db.ref('schoolAttendance').off()}
+
+function applyRole(){
+app.classList.toggle("staffMode",current.role==="staff");
+let admin=current.role==="admin";
+["studentsNav","holidaysNav","settingsNav"].forEach(id=>{
+document.getElementById(id).classList.toggle("hidden",!admin);
+});
+if(!admin){
+document.querySelectorAll("#attendance .contactCol,#attendance .waCol").forEach(x=>x.style.display="none");
+document.querySelectorAll("#monthly th:last-child,#monthly td:last-child").forEach(x=>x.style.display="none");
+}
+}
+
+function logout(){
+auth.signOut();
+db.ref("schoolAttendance").off();
+}
+
 function tab(id,b){
-document.querySelectorAll('#app section').forEach(x=>x.classList.add('hidden'));
-document.getElementById(id).classList.remove('hidden');
-document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
-b.classList.add('active');
-if(id==='students')renderStudents();
-if(id==='reports')renderReport();
-if(id==='monthly'){populateMonthStudents();monthlyReport()}
-if(id==='holidays')renderHolidays()
+if(current.role==="staff"&&!["attendance","reports","monthly"].includes(id)){
+alert("Admin access only");return;
 }
+document.querySelectorAll("#app section").forEach(x=>x.classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
+if(id==="students")renderStudents();
+if(id==="reports")renderReport();
+if(id==="monthly"){populateMonthStudents();monthlyReport()}
+if(id==="holidays")renderHolidays();
+}
+
+function k(d,id){return d+"_"+id}
+
+function populateClasses(){
+let cs=[...new Set(students.map(s=>s.cls))].sort();
+attClass.innerHTML=cs.map(c=>`<option>${esc(c)}</option>`).join("");
+}
+
 function addStudent(){
+if(current.role!=="admin")return alert("Admin only");
 let n=sName.value.trim(),cl=sClass.value.trim();
-if(!n||!cl)return alert('Student name and class required');
-students.push({id:Date.now().toString(),name:n,roll:sRoll.value,cls:cl,parent:pName.value,phone:pPhone.value.replace(/\D/g,'')});
-persist();['sName','sRoll','sClass','pName','pPhone'].forEach(id=>document.getElementById(id).value='');
-populateClasses();renderStudents();renderAttendance()
+if(!n||!cl)return alert("Name and class required");
+students.push({
+id:Date.now().toString(),name:n,roll:sRoll.value,
+cls:cl,parent:pName.value,phone:pPhone.value.replace(/\D/g,"")
+});
+persist();populateClasses();renderStudents();renderAttendance();
 }
-function populateClasses(){let cs=[...new Set(students.map(s=>s.cls))].sort();attClass.innerHTML=cs.map(c=>`<option>${esc(c)}</option>`).join('')}
-function k(d,id){return d+'_'+id}
+
 function renderAttendance(){
-let cl=attClass.value,d=attDate.value,off=isHoliday(d),list=students.filter(s=>!cl||s.cls===cl);
+let cl=attClass.value,d=attDate.value,off=isHoliday(d);
+let list=students.filter(s=>!cl||s.cls===cl);
 let c={Present:0,Absent:0,Leave:0};
-list.forEach(s=>{let st=records[k(d,s.id)]||'';if(c[st]!=null)c[st]++});
-cntAll.textContent=list.length;cntP.textContent=c.Present;cntA.textContent=c.Absent;cntL.textContent=c.Leave;
-attRows.innerHTML=off?'<tr><td colspan="5">Sunday / Holiday — Attendance is disabled.</td></tr>':
-list.map(s=>{let st=records[k(d,s.id)]||'';return `<tr><td>${esc(s.name)}</td><td>${esc(s.roll||'-')}</td><td><select data-id="${s.id}" onchange="records[k(attDate.value,this.dataset.id)]=this.value;persist();renderAttendance()"><option value="">Unmarked</option>${['Present','Absent','Leave'].map(v=>`<option ${st===v?'selected':''}>${v}</option>`).join('')}</select></td><td>${s.phone||'—'}</td><td>${st==='Absent'?`<button class="green" onclick="sendWA('${s.id}')">WhatsApp</button>`:'—'}</td></tr>`}).join('')
+list.forEach(s=>{let st=records[k(d,s.id)]||"";if(c[st]!=null)c[st]++});
+cntAll.textContent=list.length;
+cntP.textContent=c.Present;cntA.textContent=c.Absent;cntL.textContent=c.Leave;
+
+attRows.innerHTML=off?
+'<tr><td colspan="5">Sunday / Holiday — Attendance disabled</td></tr>':
+list.map(s=>`<tr>
+<td>${esc(s.name)}</td><td>${esc(s.roll||"-")}</td>
+<td><select data-id="${s.id}" onchange="records[k(attDate.value,this.dataset.id)]=this.value;persist();renderAttendance()">
+<option value="">Unmarked</option>
+${["Present","Absent","Leave"].map(v=>`<option ${records[k(d,s.id)]===v?"selected":""}>${v}</option>`).join("")}
+</select></td>
+<td class="contactCol">${esc(s.phone||"-")}</td>
+<td class="waCol">${records[k(d,s.id)]==="Absent"?`<button onclick="sendWA('${s.id}')">WhatsApp</button>`:"-"}</td>
+</tr>`).join("");
 }
-function saveAttendance(){if(isHoliday(attDate.value))return alert('Sunday/Holiday: attendance cannot be saved');persist();alert('Attendance saved.');renderAttendance()}
-function message(s){return `Assalam-o-Alaikum Dear Parent, your child ${s.name} (${s.cls}) is marked ABSENT today (${attDate.value}). Kindly ensure regular attendance. Regards, The Winner School (Islamic Campus).`}
-function sendWA(id){let s=students.find(x=>x.id===id);if(!s.phone)return alert('Parent WhatsApp number missing');window.open('https://wa.me/'+s.phone+'?text='+encodeURIComponent(message(s)),'_blank')}
-function absentMessages(){let xs=students.filter(s=>(records[k(attDate.value,s.id)]||'')==='Absent'&&s.phone);if(!xs.length)return alert('No absent students with phone numbers');xs.forEach((s,i)=>setTimeout(()=>window.open('https://wa.me/'+s.phone+'?text='+encodeURIComponent(message(s)),'_blank'),i*700))}
-function renderStudents(){studentRows.innerHTML=students.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.roll||'')}</td><td>${esc(s.cls)}</td><td>${esc(s.parent||'')}</td><td>${esc(s.phone||'')}</td><td><button class="red" onclick="del('${s.id}')">Delete</button></td></tr>`).join('')}
-function del(id){if(confirm('Delete student?')){students=students.filter(s=>s.id!==id);persist();populateClasses();renderStudents();renderAttendance()}}
+
+function saveAttendance(){
+if(isHoliday(attDate.value))return alert("Sunday/Holiday attendance disabled");
+persist();alert("Attendance saved");renderAttendance();
+}
+
+function renderStudents(){
+studentRows.innerHTML=students.map(s=>`<p>${esc(s.name)} | ${esc(s.roll)} | ${esc(s.cls)}
+${current.role==="admin"?`<button class="red" onclick="del('${s.id}')">Delete</button>`:""}</p>`).join("");
+}
+function del(id){
+if(current.role!=="admin")return alert("Admin only");
+if(confirm("Delete student?")){
+students=students.filter(s=>s.id!==id);persist();populateClasses();renderStudents();renderAttendance();
+}
+}
+
 function renderReport(){
-let d=reportDate.value,cl=reportClass.value.trim().toLowerCase(),list=students.filter(s=>!cl||s.cls.toLowerCase().includes(cl));
+let d=reportDate.value,cl=reportClass.value.trim().toLowerCase();
+let list=students.filter(s=>!cl||s.cls.toLowerCase().includes(cl));
 let c={Present:0,Absent:0,Leave:0,Unmarked:0};
-list.forEach(s=>{let st=records[k(d,s.id)]||'Unmarked';c[st]=(c[st]||0)+1});
-reportOutput.innerHTML=`<div class="stats"><div class="stat">Total<b>${list.length}</b></div><div class="stat">Present<b>${c.Present}</b></div><div class="stat">Absent<b>${c.Absent}</b></div><div class="stat">Leave / Unmarked<b>${c.Leave} / ${c.Unmarked}</b></div></div><p>Attendance date: ${d}</p>`
+list.forEach(s=>{let st=records[k(d,s.id)]||"Unmarked";c[st]++});
+reportOutput.innerHTML=`<h3>Date: ${d}</h3>
+<p>Total ${list.length} | Present ${c.Present} | Absent ${c.Absent} | Leave ${c.Leave} | Unmarked ${c.Unmarked}</p>`;
 }
-function exportAttendance(){csvDownload([['Date','Student','Roll','Class','Parent WhatsApp','Status'],...students.map(s=>[reportDate.value,s.name,s.roll,s.cls,s.phone,records[k(reportDate.value,s.id)]||'Unmarked'])],'attendance-'+reportDate.value+'.csv')}
-function exportStudents(){csvDownload([['Name','Roll','Class','Parent','WhatsApp'],...students.map(s=>[s.name,s.roll,s.cls,s.parent,s.phone])],'students.csv')}
-function csvDownload(rows,name){let csv=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;a.click()}
-function backup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({students,records,holidays},null,2)],{type:'application/json'}));a.download='winner-attendance-backup.json';a.click()}
-function restore(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);students=x.students||[];records=x.records||{};holidays=x.holidays||[];persist();populateClasses();renderStudents();renderAttendance();alert('Backup restored')}catch{alert('Invalid backup file')}};r.readAsText(f)}
-function resetAll(){if(confirm('Erase all student and attendance data?')){students=[];records={};holidays=[];persist();populateClasses();renderStudents();renderAttendance()}}
-function isHoliday(d){return new Date(d+'T12:00:00').getDay()===0||holidays.some(h=>d>=h.from&&d<=h.to)}
-function populateMonthStudents(){let cl=monthClass.value.trim().toLowerCase();monthStudent.innerHTML='<option value="">All students</option>'+students.filter(s=>!cl||s.cls.toLowerCase().includes(cl)).map(s=>`<option value="${s.id}">${esc(s.name)} (${esc(s.cls)})</option>`).join('')}
-function monthDays(){let m=monthPick.value;if(!m)return[];let[y,mo]=m.split('-').map(Number),days=new Date(y,mo,0).getDate(),a=[];for(let i=1;i<=days;i++){let d=`${y}-${String(mo).padStart(2,'0')}-${String(i).padStart(2,'0')}`;if(!isHoliday(d))a.push(d)}return a}
+
+function isHoliday(d){
+return new Date(d+"T12:00:00").getDay()===0||holidays.some(h=>d>=h.from&&d<=h.to);
+}
+
+function populateMonthStudents(){
+let cl=monthClass.value.trim().toLowerCase();
+monthStudent.innerHTML='<option value="">All Students</option>'+
+students.filter(s=>!cl||s.cls.toLowerCase().includes(cl))
+.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");
+}
+
+function monthDays(){
+let m=monthPick.value;if(!m)return [];
+let[y,mo]=m.split("-").map(Number),a=[];
+for(let i=1;i<=new Date(y,mo,0).getDate();i++){
+let d=`${y}-${String(mo).padStart(2,"0")}-${String(i).padStart(2,"0")}`;
+if(!isHoliday(d))a.push(d);
+}
+return a;
+}
+
 function monthlyData(){
 let days=monthDays(),cl=monthClass.value.trim().toLowerCase(),sid=monthStudent.value;
 let list=students.filter(s=>(!cl||s.cls.toLowerCase().includes(cl))&&(!sid||s.id===sid));
-return{days,list,rows:list.map(s=>{let c={Present:0,Absent:0,Leave:0,Unmarked:0};days.forEach(d=>{let v=records[k(d,s.id)]||'Unmarked';c[v]=(c[v]||0)+1});let marked=c.Present+c.Absent+c.Leave;return{s,c,marked,pct:marked?Math.round(c.Present/marked*100):0}})}
+return {days,rows:list.map(s=>{
+let c={Present:0,Absent:0,Leave:0,Unmarked:0};
+days.forEach(d=>c[records[k(d,s.id)]||"Unmarked"]++);
+let marked=c.Present+c.Absent+c.Leave;
+return{s,c,pct:marked?Math.round(c.Present/marked*100):0};
+})};
 }
+
 function monthlyReport(){
-populateMonthStudents();let{days,rows}=monthlyData();
-monthOutput.innerHTML=`<p><b>School working days:</b> ${days.length} (Sundays and holidays excluded)</p><div class="tablewrap"><table><thead><tr><th>Student</th><th>Class</th><th>Present</th><th>Absent</th><th>Leave</th><th>Unmarked</th><th>%</th><th>WhatsApp</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.s.name)}</td><td>${esc(r.s.cls)}</td><td>${r.c.Present}</td><td>${r.c.Absent}</td><td>${r.c.Leave}</td><td>${r.c.Unmarked}</td><td>${r.pct}%</td><td>${r.s.phone?`<button onclick="monthWA('${r.s.id}')">Send</button>`:'—'}</td></tr>`).join('')}</tbody></table></div>`
-}
-function monthWA(id){
-let r=monthlyData().rows.find(x=>x.s.id===id);if(!r||!r.s.phone)return alert('Parent WhatsApp missing');
-let msg=`Assalam-o-Alaikum. ${r.s.name} (${r.s.cls}) monthly attendance: Present ${r.c.Present}, Absent ${r.c.Absent}, Leave ${r.c.Leave}, Attendance ${r.pct}%. Regards, The Winner School (Islamic Campus).`;
-window.open('https://wa.me/'+r.s.phone+'?text='+encodeURIComponent(msg),'_blank')
-}
-function printMonthly(){
-monthlyReport();let w=window.open('','_blank');
-w.document.write('<html><head><title>Monthly Attendance</title><style>body{font:14px Arial}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:6px}</style></head><body><h2>THE WINNER SCHOOL (ISLAMIC CAMPUS)</h2><h3>Monthly Attendance Report '+monthPick.value+'</h3>'+monthOutput.innerHTML+'</body></html>');
-w.document.close();w.print()
-}
-function exportMonthly(){
+populateMonthStudents();
 let{days,rows}=monthlyData();
-csvDownload([['Student','Class','Present','Absent','Leave','Unmarked','Attendance %'],...rows.map(r=>[r.s.name,r.s.cls,r.c.Present,r.c.Absent,r.c.Leave,r.c.Unmarked,r.pct])],'monthly-'+monthPick.value+'.csv')
+monthOutput.innerHTML=`<p>Working days: ${days.length}</p>
+<table><tr><th>Student</th><th>Present</th><th>Absent</th><th>Leave</th><th>%</th></tr>
+${rows.map(r=>`<tr><td>${esc(r.s.name)}</td><td>${r.c.Present}</td><td>${r.c.Absent}</td><td>${r.c.Leave}</td><td>${r.pct}%</td></tr>`).join("")}</table>`;
 }
+
+function printMonthly(){
+monthlyReport();
+let w=window.open("","_blank");
+w.document.write("<html><body><h2>THE WINNER SCHOOL</h2>"+monthOutput.innerHTML+"</body></html>");
+w.document.close();w.print();
+}
+
 function addHoliday(){
+if(current.role!=="admin")return alert("Admin only");
 let n=holidayName.value.trim(),f=holidayFrom.value,t=holidayTo.value;
-if(!n||!f||!t||f>t)return alert('Name and valid dates required');
-holidays.push({id:Date.now().toString(),name:n,from:f,to:t});persist();renderHolidays();holidayName.value=''
+if(!n||!f||!t||f>t)return alert("Valid details required");
+holidays.push({id:Date.now().toString(),name:n,from:f,to:t});
+persist();renderHolidays();
 }
-function renderHolidays(){holidayList.innerHTML=holidays.map(h=>`<p>${esc(h.name)}: ${h.from} to ${h.to} <button class="red" onclick="removeHoliday('${h.id}')">Remove</button></p>`).join('')||'No holidays added.'}
-function removeHoliday(id){if(confirm('Remove this holiday?')){holidays=holidays.filter(h=>h.id!==id);persist();renderHolidays()}}
-function esc(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-attDate.addEventListener('change',renderAttendance);
-attClass.addEventListener('change',renderAttendance);
-monthClass.addEventListener('change',populateMonthStudents);
+function renderHolidays(){
+holidayList.innerHTML=holidays.map(h=>`<p>${esc(h.name)} ${h.from}–${h.to}
+<button onclick="removeHoliday('${h.id}')">Remove</button></p>`).join("");
+}
+function removeHoliday(id){
+if(current.role!=="admin")return alert("Admin only");
+holidays=holidays.filter(h=>h.id!==id);persist();renderHolidays();
+}
+
+function backup(){
+let a=document.createElement("a");
+a.href=URL.createObjectURL(new Blob([JSON.stringify({students,records,holidays})]));
+a.download="winner-backup.json";a.click();
+}
+function restore(e){
+if(current.role!=="admin")return alert("Admin only");
+let r=new FileReader();r.onload=()=>{
+let x=JSON.parse(r.result);students=x.students||[];records=x.records||{};holidays=x.holidays||[];
+persist();populateClasses();renderAttendance();renderStudents();
+};r.readAsText(e.target.files[0]);
+}
+function resetAll(){
+if(current.role!=="admin")return alert("Admin only");
+if(confirm("Delete all data?")){students=[];records={};holidays=[];persist();populateClasses();renderAttendance();renderStudents()}
+}
+function esc(x){return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+attDate.addEventListener("change",renderAttendance);
+attClass.addEventListener("change",renderAttendance);
+monthClass.addEventListener("change",populateMonthStudents);
 </script>
 </body>
- </html>
+</html>
