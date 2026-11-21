@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Winner School Attendance</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}
+header{background:#123b70;color:#fff;padding:18px;text-align:center}header h1{margin:0;font-size:23px}header p{margin:6px 0 0}
+.container{max-width:1200px;margin:auto;padding:15px}.card{background:#fff;padding:16px;border-radius:14px;margin-bottom:15px;box-shadow:0 3px 12px #0001}
+input,select,textarea,button{padding:11px;border-radius:8px;border:1px solid #ccc;font-size:14px;margin:4px 0}
+input,select,textarea{width:100%}button{border:0;background:#1764a5;color:#fff;cursor:pointer;font-weight:bold}button:hover{opacity:.92}
+.danger{background:#dc3545}.success{background:#16844a}.secondary{background:#64748b}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px}.tabs button{flex:1;min-width:100px}
+.hidden{display:none!important}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.stat{background:#e8f2ff;padding:15px;border-radius:12px;text-align:center}.stat b{display:block;font-size:25px;color:#123b70}
+table{width:100%;border-collapse:collapse;min-width:600px}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}th{background:#eaf2f8}
+.tablewrap{overflow-x:auto}.small{font-size:12px;color:#64748b}h2{color:#123b70}
+</style>
+</head>
+<body>
+<header><h1>THE WINNER SCHOOL</h1><p>ISLAMIC CAMPUS • Attendance Management System</p></header>
+<div class="container">
+<div id="loginBox" class="card" style="max-width:420px;margin:35px auto">
+<h2>Staff Login</h2><input id="email" type="email" placeholder="Email Address"><input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button><p id="loginMsg"></p>
+</div>
+<div id="app" class="hidden">
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><div><b id="welcome"></b><p class="small">Attendance • Students • Reports</p></div><button class="danger" onclick="logout()">Logout</button></div></div>
+<div class="tabs">
+<button onclick="showTab('attendance')">Attendance</button><button onclick="showTab('students')">Students</button><button onclick="showTab('reports')">Reports</button><button onclick="showTab('holidays')">Holidays</button><button id="staffTabBtn" onclick="showTab('staff')">Staff</button><button id="backupTabBtn" onclick="showTab('backup')">Backup</button>
+</div>
+<section id="attendance" class="tab card"><h2>Daily Attendance</h2><div class="grid">
+<div><label>Date</label><input type="date" id="attDate" onchange="renderAttendance()"></div><div><label>Class</label><select id="attClass" onchange="renderAttendance()"></select></div></div>
+<div class="grid" style="margin-top:12px"><div class="stat">Students<b id="totalCount">0</b></div><div class="stat">Present<b id="presentCount">0</b></div><div class="stat">Absent<b id="absentCount">0</b></div><div class="stat">Leave<b id="leaveCount">0</b></div></div>
+<div class="tablewrap"><table><thead><tr><th>Student</th><th>Roll No.</th><th>Status</th><th>Parent WhatsApp</th></tr></thead><tbody id="attendanceTable"></tbody></table></div>
+<button class="success" onclick="saveAttendance()">Save Attendance</button><button onclick="openAbsentWhatsApp()">WhatsApp Absent Parents</button></section>
+<section id="students" class="tab card hidden"><h2>Student Register</h2>
+<div id="studentForm"><input id="studentName" placeholder="Student Name"><input id="studentRoll" placeholder="Roll Number"><select id="studentClass"></select><input id="parentName" placeholder="Parent Name"><input id="parentPhone" placeholder="Parent WhatsApp (923xxxxxxxxx)"><button onclick="addStudent()">Add Student</button></div>
+<h3>Student List</h3><div class="tablewrap"><table><thead><tr><th>Name</th><th>Roll</th><th>Class</th><th>Parent</th><th>Phone</th><th>Action</th></tr></thead><tbody id="studentsTable"></tbody></table></div><button onclick="exportStudents()">Export Students CSV</button></section>
+<section id="reports" class="tab card hidden"><h2>Attendance Reports</h2><label>Report Type</label><select id="reportType"><option value="daily">Daily Report</option><option value="monthly">Monthly Report</option></select><label>Date</label><input type="date" id="reportDate"><label>Class</label><select id="reportClass"></select><button onclick="generateReport()">Generate Report</button><button onclick="exportReport()">Export Report CSV</button><div id="reportResults"></div></section>
+<section id="holidays" class="tab card hidden"><h2>Holidays Management</h2><div id="holidayForm"><input type="date" id="holidayDate"><input id="holidayName" placeholder="Holiday Name"><button onclick="addHoliday()">Add Holiday</button></div><div id="holidayList"></div></section>
+<section id="staff" class="tab card hidden"><h2>Staff Management</h2><p class="small">Staff user accounts must be created first in Firebase Authentication. Assign their class here using the same email.</p><div id="staffForm"><input id="staffEmail" placeholder="Staff Login Email"><input id="staffName" placeholder="Staff Name"><select id="staffClass"></select><button onclick="addStaff()">Assign Staff</button></div><div id="staffList"></div></section>
+<section id="backup" class="tab card hidden"><h2>Backup & Restore</h2><button onclick="backup()">Download JSON Backup</button><label style="display:block;margin-top:15px">Restore Backup</label><input type="file" id="restoreFile" accept=".json"><button onclick="restoreBackup()">Restore Data</button><button class="danger" onclick="resetAll()">Reset All Data</button></section>
+</div></div>
+<script>
+const firebaseConfig={apiKey:"AIzaSyBoeVKahBPXx-sPE57nH-ylkl5c1djE",authDomain:"the-winner-school-attendence.firebaseapp.com",databaseURL:"https://the-winner-school-attendence-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"the-winner-school-attendence",storageBucket:"the-winner-school-attendence.firebasestorage.app",messagingSenderId:"255019225232",appId:"1:255019225232:web:2c2cbeaaabffd7899c8815",measurementId:"G-JBQ6F69KSK"};
+firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.database(),ROOT="schoolAttendance",ADMIN_EMAIL="maryamsarwar041@gmail.com";
+const CLASSES=["Nursery","Reception","Prep","Class 1","Class 2","Class 3","Class 4","Class 5","Class 6","Class 7","Class 8","Class 9","Class 10"];
+let user=null,isAdmin=false,assignedClass="",data={students:[],records:{},holidays:{},staff:{}},currentReport=[];
+function today(){return new Date().toISOString().slice(0,10)}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+async function login(){try{await auth.signInWithEmailAndPassword(email.value.trim(),password.value)}catch(e){loginMsg.textContent=e.message}}
+async function logout(){await auth.signOut()}
+auth.onAuthStateChanged(async u=>{user=u;if(!u){loginBox.classList.remove("hidden");app.classList.add("hidden");return}
+isAdmin=(u.email||"").toLowerCase()===ADMIN_EMAIL.toLowerCase();
+try{await loadData();if(!isAdmin){let st=data.staff[(u.email||"").toLowerCase()];if(!st){alert("Your staff account has not been assigned a class. Contact Admin.");await auth.signOut();return}assignedClass=st.className}
+loginBox.classList.add("hidden");app.classList.remove("hidden");welcome.textContent=isAdmin?"Welcome Admin":"Welcome "+(data.staff[(u.email||"").toLowerCase()]?.name||u.email);
+staffTabBtn.classList.toggle("hidden",!isAdmin);backupTabBtn.classList.toggle("hidden",!isAdmin);studentForm.classList.toggle("hidden",!isAdmin);staffForm.classList.toggle("hidden",!isAdmin);holidayForm.classList.toggle("hidden",!isAdmin);
+setupSelectors();renderAttendance();renderStudents();renderHolidays();renderStaff();
+}catch(e){alert("Could not load data: "+e.message)}});
+async function loadData(){let s=await db.ref(ROOT).once("value");data=s.val()||{};data.students=data.students||[];data.records=data.records||{};data.holidays=data.holidays||{};data.staff=data.staff||{}}
+async function saveData(){await db.ref(ROOT).set(data)}
+function setupSelectors(){let opts=CLASSES.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");["attClass","studentClass","reportClass","staffClass"].forEach(id=>document.getElementById(id).innerHTML=opts);if(!isAdmin){["attClass","studentClass","reportClass"].forEach(id=>{let el=document.getElementById(id);el.value=assignedClass;el.disabled=true});staffClass.value=assignedClass;staffClass.disabled=true}attDate.value=today();reportDate.value=today()}
+function showTab(n){document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));document.getElementById(n).classList.remove("hidden");if(n==="attendance")renderAttendance();if(n==="students")renderStudents();if(n==="holidays")renderHolidays();if(n==="staff")renderStaff()}
+function addStudent(){if(!isAdmin)return;let name=studentName.value.trim(),roll=studentRoll.value.trim(),cls=studentClass.value,parent=parentName.value.trim(),phone=parentPhone.value.trim();if(!name||!roll||!cls)return alert("Enter name, roll and class.");if(data.students.some(s=>s.roll===roll&&s.cls===cls))return alert("Roll number already exists in this class.");data.students.push({id:Date.now().toString(),name,roll,cls,parent,phone});saveData().then(()=>{studentName.value=studentRoll.value=parentName.value=parentPhone.value="";renderStudents();renderAttendance();alert("Student added.")}).catch(e=>alert(e.message))}
+function renderStudents(){let list=data.students.filter(s=>isAdmin||s.cls===assignedClass);studentsTable.innerHTML=list.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.roll)}</td><td>${esc(s.cls)}</td><td>${esc(s.parent)}</td><td>${esc(s.phone)}</td><td>${isAdmin?`<button onclick="editStudent('${s.id}')">Edit</button><button class="danger" onclick="deleteStudent('${s.id}')">Delete</button>`:"Read Only"}</td></tr>`).join("")}
+async function editStudent(id){if(!isAdmin)return;let s=data.students.find(x=>x.id===id);if(!s)return;let n=prompt("Student name",s.name);if(n===null)return;let r=prompt("Roll number",s.roll);if(r===null)return;s.name=n.trim();s.roll=r.trim();s.parent=prompt("Parent name",s.parent||"")||"";s.phone=prompt("WhatsApp number",s.phone||"")||"";await saveData();renderStudents();renderAttendance()}
+async function deleteStudent(id){if(!isAdmin||!confirm("Delete student?"))return;data.students=data.students.filter(s=>s.id!==id);await saveData();renderStudents();renderAttendance()}
+function renderAttendance(){let date=attDate.value||today(),cls=attClass.value,students=data.students.filter(s=>s.cls===cls),rec=data.records[date]?.[cls]||{};attendanceTable.innerHTML=students.map(s=>{let status=rec[s.id]||"Present";return `<tr><td>${esc(s.name)}</td><td>${esc(s.roll)}</td><td><select id="status_${s.id}" onchange="updateStats()"><option ${status==="Present"?"selected":""}>Present</option><option ${status==="Absent"?"selected":""}>Absent</option><option ${status==="Leave"?"selected":""}>Leave</option></select></td><td>${esc(s.phone)}</td></tr>`}).join("");updateStats()}
+function updateStats(){let list=data.students.filter(s=>s.cls===attClass.value),p=0,a=0,l=0;list.forEach(s=>{let v=document.getElementById("status_"+s.id)?.value||"Present";if(v==="Present")p++;else if(v==="Absent")a++;else if(v==="Leave")l++});totalCount.textContent=list.length;presentCount.textContent=p;absentCount.textContent=a;leaveCount.textContent=l}
+async function saveAttendance(){let d=attDate.value,c=attClass.value;if(!d||!c)return alert("Choose date and class.");data.records[d]=data.records[d]||{};data.records[d][c]={};data.students.filter(s=>s.cls===c).forEach(s=>data.records[d][c][s.id]=document.getElementById("status_"+s.id)?.value||"Present");try{await saveData();alert("Attendance saved successfully!")}catch(e){alert("Save failed: "+e.message)}}
+function openAbsentWhatsApp(){let date=attDate.value,cls=attClass.value,abs=data.students.filter(s=>s.cls===cls&&document.getElementById("status_"+s.id)?.value==="Absent"&&s.phone);if(!abs.length)return alert("No absent students with WhatsApp numbers.");abs.forEach((s,i)=>{let ph=s.phone.replace(/\D/g,"");if(ph.startsWith("0"))ph="92"+ph.slice(1);let msg=`Assalam-o-Alaikum Dear Parent, your child ${s.name} (${s.cls}) is marked ABSENT today (${date}). Kindly ensure regular attendance. Regards, The Winner School (Islamic Campus).`;setTimeout(()=>window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,"_blank"),i*700)})}
+function generateReport(){let type=reportType.value,d=reportDate.value,c=reportClass.value;currentReport=[];if(type==="daily"){let rec=data.records[d]?.[c]||{};data.students.filter(s=>s.cls===c).forEach(s=>currentReport.push({date:d,name:s.name,roll:s.roll,cls:c,status:rec[s.id]||"Not Marked"}))}else{let month=d.slice(0,7);Object.keys(data.records).filter(x=>x.startsWith(month)).sort().forEach(day=>{let rec=data.records[day]?.[c]||{};data.students.filter(s=>s.cls===c).forEach(s=>currentReport.push({date:day,name:s.name,roll:s.roll,cls:c,status:rec[s.id]||"Not Marked"}))})}reportResults.innerHTML=`<h3>${esc(c)} Report</h3><div class="tablewrap"><table><tr><th>Date</th><th>Student</th><th>Roll</th><th>Status</th></tr>${currentReport.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.roll)}</td><td>${esc(r.status)}</td></tr>`).join("")}</table></div>`}
+function exportReport(){if(!currentReport.length)return alert("Generate report first.");downloadCSV(currentReport,"Attendance_Report.csv")}
+function addHoliday(){if(!isAdmin)return;let d=holidayDate.value,n=holidayName.value.trim();if(!d||!n)return alert("Enter date and holiday name.");data.holidays[d]=n;saveData().then(()=>{holidayName.value="";renderHolidays()}).catch(e=>alert(e.message))}
+function renderHolidays(){holidayList.innerHTML=Object.entries(data.holidays).sort().map(([d,n])=>`<div class="card"><b>${esc(d)}</b> - ${esc(n)} ${isAdmin?`<button class="danger" onclick="deleteHoliday('${d}')">Delete</button>`:""}</div>`).join("")}
+async function deleteHoliday(d){if(!isAdmin||!confirm("Delete holiday?"))return;delete data.holidays[d];await saveData();renderHolidays()}
+async function addStaff(){if(!isAdmin)return;let e=staffEmail.value.trim().toLowerCase(),n=staffName.value.trim(),c=staffClass.value;if(!e||!n||!c)return alert("Complete staff information.");data.staff[e]={name:n,className:c};await saveData();staffEmail.value=staffName.value="";renderStaff();alert("Staff assignment saved. Create the login in Firebase Authentication too.")}
+function renderStaff(){staffList.innerHTML=Object.entries(data.staff).map(([e,s])=>`<div class="card"><b>${esc(s.name)}</b><br>${esc(e)}<br>Class: ${esc(s.className)} ${isAdmin?`<button class="danger" onclick="deleteStaff('${encodeURIComponent(e)}')">Remove</button>`:""}</div>`).join("")}
+async function deleteStaff(e){if(!isAdmin)return;e=decodeURIComponent(e);if(!confirm("Remove staff assignment?"))return;delete data.staff[e];await saveData();renderStaff()}
+function downloadCSV(rows,filename){if(!rows?.length)return alert("No data available.");let keys=Object.keys(rows[0]),csv=[keys.join(","),...rows.map(r=>keys.map(k=>`"${String(r[k]??"").replace(/"/g,'""')}"`).join(","))].join("\n"),blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportStudents(){downloadCSV(data.students,"Students.csv")}
+function backup(){if(!isAdmin)return;let b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="winner-school-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function restoreBackup(){if(!isAdmin)return;let f=restoreFile.files[0];if(!f)return alert("Select backup file.");let rd=new FileReader();rd.onload=async()=>{try{let obj=JSON.parse(rd.result);if(!confirm("Replace current data with backup?"))return;data=obj;await saveData();alert("Restored. Reloading.");location.reload()}catch(e){alert("Invalid backup or restore failed.")}};rd.readAsText(f)}
+async function resetAll(){if(!isAdmin||!confirm("Delete all school data?"))return;if(!confirm("Final confirmation: permanently delete all data?"))return;data={students:[],records:{},holidays:{},staff:{}};await db.ref(ROOT).set(data);alert("Data reset.");location.reload()}
+</script>
+</body></html>
